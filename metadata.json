@@ -1,0 +1,7 @@
+{
+  "name": "Copy of DRCS - Disaster Response Coordination System",
+  "description": "A high-fidelity command and control dashboard for real-time disaster management, featuring role-based portals for government agencies and NGOs, AI-driven incident analysis, and task coordination.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

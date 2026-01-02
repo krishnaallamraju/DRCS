@@ -1,0 +1,38 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Function to check if user has a specific role in their custom claims
+    function hasRole(role) {
+      return request.auth != null && request.auth.token.role == role;
+    }
+
+    // Incidents Collection
+    match /incidents/{incidentId} {
+      // Government can do everything. Volunteers (NGOs) can read and create reports.
+      allow read: if request.auth != null;
+      allow create: if request.auth != null; 
+      allow update, delete: if hasRole('GOVERNMENT');
+    }
+
+    // Tasks Collection
+    match /tasks/{taskId} {
+      allow read: if request.auth != null;
+      // Only Gov can create tasks
+      allow create: if hasRole('GOVERNMENT');
+      // Gov can update anything, NGO can only update tasks to 'Claim' them
+      allow update: if hasRole('GOVERNMENT') || (
+        hasRole('NGO') && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'claimedBy']) &&
+        resource.data.status == 'OPEN'
+      );
+    }
+
+    // NGOs Profiles
+    match /ngo_profiles/{ngoId} {
+      allow read: if request.auth != null;
+      allow update: if request.auth.uid == ngoId || hasRole('GOVERNMENT');
+    }
+  }
+}
